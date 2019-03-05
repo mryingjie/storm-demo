@@ -1,14 +1,24 @@
 package com.demo.storm.wordcount;
 
-import org.apache.storm.shade.org.eclipse.jetty.util.ajax.JSON;
-import org.apache.storm.task.OutputCollector;
-import org.apache.storm.task.TopologyContext;
-import org.apache.storm.topology.IBasicBolt;
-import org.apache.storm.topology.IRichBolt;
-import org.apache.storm.topology.IWindowedBolt;
-import org.apache.storm.topology.OutputFieldsDeclarer;
-import org.apache.storm.topology.base.BaseRichBolt;
-import org.apache.storm.tuple.Tuple;
+//import org.apache.storm.shade.org.eclipse.jetty.util.ajax.JSON;
+//import org.apache.storm.task.OutputCollector;
+//import org.apache.storm.task.TopologyContext;
+//import org.apache.storm.topology.IBasicBolt;
+//import org.apache.storm.topology.IRichBolt;
+//import org.apache.storm.topology.IWindowedBolt;
+//import org.apache.storm.topology.OutputFieldsDeclarer;
+//import org.apache.storm.topology.base.BaseRichBolt;
+//import org.apache.storm.tuple.Tuple;
+
+import backtype.storm.task.OutputCollector;
+import backtype.storm.task.TopologyContext;
+import backtype.storm.topology.FailedException;
+import backtype.storm.topology.OutputFieldsDeclarer;
+import backtype.storm.topology.base.BaseRichBolt;
+import backtype.storm.tuple.Tuple;
+import com.google.gson.JsonObject;
+import jdk.nashorn.internal.parser.JSONParser;
+import org.json.simple.JSONObject;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -32,18 +42,26 @@ public class WordCountBolt2 extends BaseRichBolt {
 
     @Override
     public void execute(Tuple input) {
-        //getString(0)
-        String word = input.getStringByField("word");
+        try {
+            //getString(0)
+            String word = input.getStringByField("word");
 
-        //getString(1)
-        Integer num = input.getIntegerByField("num");
+            //getString(1)
+            Integer num = input.getIntegerByField("num");
 
-        if(!map.containsKey(word)){
-            map.put(word,1 );
-        }else{
-            map.put(word, map.get(word)+num);
+            if(!map.containsKey(word)){
+                map.put(word,1 );
+            }else{
+                map.put(word, map.get(word)+num);
+            }
+            collector.fail(input);
+
+        } catch (Exception e) {
+            collector.fail(input);
         }
-        System.out.println(JSON.toString(map));
+
+
+        System.out.println(JSONObject.toJSONString(map));
     }
 
     @Override

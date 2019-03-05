@@ -1,13 +1,15 @@
 package com.demo.storm.wordcount;
 
-import org.apache.storm.spout.SpoutOutputCollector;
-import org.apache.storm.task.TopologyContext;
-import org.apache.storm.topology.OutputFieldsDeclarer;
-import org.apache.storm.topology.base.BaseRichSpout;
-import org.apache.storm.tuple.Fields;
-import org.apache.storm.tuple.Values;
+import backtype.storm.spout.SpoutOutputCollector;
+import backtype.storm.task.TopologyContext;
+import backtype.storm.topology.OutputFieldsDeclarer;
+import backtype.storm.topology.base.BaseRichSpout;
+import backtype.storm.tuple.Fields;
+import backtype.storm.tuple.Values;
 
+import java.util.HashMap;
 import java.util.Map;
+import java.util.UUID;
 
 /**
  * @author ZhengYingjie
@@ -17,6 +19,8 @@ import java.util.Map;
 public class WordCountSpout extends BaseRichSpout {
 
     SpoutOutputCollector collector;
+
+    Map tupleBuffer = new HashMap();
 
     /**
      * 初始化方法
@@ -39,7 +43,10 @@ public class WordCountSpout extends BaseRichSpout {
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
-        collector.emit(new Values("i am lilei love hanmeimei","aaa Value"));
+        String msgId = UUID.randomUUID().toString().replaceAll("-", "");
+        Values tuple = new Values("i am lilei love hanmeimei", "aaa Value");
+        collector.emit(tuple,msgId);
+        tupleBuffer.put(msgId,tuple );
     }
 
     /**
@@ -52,5 +59,18 @@ public class WordCountSpout extends BaseRichSpout {
     @Override
     public void declareOutputFields(OutputFieldsDeclarer declarer) {
         declarer.declare(new Fields("love","aaa"));
+    }
+
+    @Override
+    public void ack(Object msgId) {
+        System.out.println("消息处理成功msgId="+msgId);
+        tupleBuffer.remove(msgId);
+    }
+
+    @Override
+    public void fail(Object msgId) {
+        System.out.println("消息处理失败msgId="+msgId);
+        Values tuple = (Values) tupleBuffer.get(msgId);
+        collector.emit(tuple,msgId);
     }
 }

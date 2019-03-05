@@ -1,13 +1,13 @@
 package com.demo.storm.wordcount;
 
-import org.apache.storm.Config;
-import org.apache.storm.LocalCluster;
-import org.apache.storm.StormSubmitter;
-import org.apache.storm.generated.AlreadyAliveException;
-import org.apache.storm.generated.AuthorizationException;
-import org.apache.storm.generated.InvalidTopologyException;
-import org.apache.storm.topology.TopologyBuilder;
-import org.apache.storm.tuple.Fields;
+
+import backtype.storm.Config;
+import backtype.storm.LocalCluster;
+import backtype.storm.StormSubmitter;
+import backtype.storm.generated.AlreadyAliveException;
+import backtype.storm.generated.InvalidTopologyException;
+import backtype.storm.topology.TopologyBuilder;
+import backtype.storm.tuple.Fields;
 
 /**
  * @author ZhengYingjie
@@ -25,12 +25,21 @@ public class WordCountTopllogMain {
 
         builder.setBolt("wordCoundBolt1",new WordCountBolt1(),10).shuffleGrouping("wordCountSpout");
 
-        builder.setBolt("wordCoundBolt2",new WordCountBolt2(),1).noneGrouping("wordCoundBolt1");
+        builder.setBolt("wordCoundBolt2",new WordCountBolt2(),2).fieldsGrouping("wordCoundBolt1",new Fields("word"));
 
 
         //创建一个configuration 指定当前topology需要的worker的数量
 
+//        2、如何使用Ack机制
+//        spout 在发送数据的时候带上msgid
+//
+//        设置acker数至少大于0；Config.setNumAckers(conf, ackerParal);
+//        在bolt中完成处理tuple时，执行OutputCollector.ack(tuple), 当失败处理时，执行OutputCollector.fail(tuple);
+//        推荐使用IBasicBolt， 因为IBasicBolt 自动封装了OutputCollector.ack(tuple), 处理失败时，请抛出FailedException，则自动执行OutputCollector.fail(tuple)
+
         Config config = new Config();
+        Config.setNumAckers(config, 1);
+//        config.setDebug(true);
         config.setNumWorkers(2);
 
         //提交任务
@@ -41,8 +50,6 @@ public class WordCountTopllogMain {
             } catch (AlreadyAliveException e) {
                 e.printStackTrace();
             } catch (InvalidTopologyException e) {
-                e.printStackTrace();
-            } catch (AuthorizationException e) {
                 e.printStackTrace();
             }
 

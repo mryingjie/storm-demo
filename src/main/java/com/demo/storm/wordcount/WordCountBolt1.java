@@ -1,15 +1,24 @@
 package com.demo.storm.wordcount;
 
-import org.apache.storm.task.OutputCollector;
-import org.apache.storm.task.TopologyContext;
-import org.apache.storm.topology.IBasicBolt;
-import org.apache.storm.topology.IRichBolt;
-import org.apache.storm.topology.IWindowedBolt;
-import org.apache.storm.topology.OutputFieldsDeclarer;
-import org.apache.storm.topology.base.BaseRichBolt;
-import org.apache.storm.tuple.Fields;
-import org.apache.storm.tuple.Tuple;
-import org.apache.storm.tuple.Values;
+//import org.apache.storm.task.OutputCollector;
+//import org.apache.storm.task.TopologyContext;
+//import org.apache.storm.topology.IBasicBolt;
+//import org.apache.storm.topology.IRichBolt;
+//import org.apache.storm.topology.IWindowedBolt;
+//import org.apache.storm.topology.OutputFieldsDeclarer;
+//import org.apache.storm.topology.base.BaseRichBolt;
+//import org.apache.storm.tuple.Fields;
+//import org.apache.storm.tuple.Tuple;
+//import org.apache.storm.tuple.Values;
+
+import backtype.storm.task.OutputCollector;
+import backtype.storm.task.TopologyContext;
+import backtype.storm.topology.FailedException;
+import backtype.storm.topology.OutputFieldsDeclarer;
+import backtype.storm.topology.base.BaseRichBolt;
+import backtype.storm.tuple.Fields;
+import backtype.storm.tuple.Tuple;
+import backtype.storm.tuple.Values;
 
 import java.util.Map;
 
@@ -39,16 +48,22 @@ public class WordCountBolt1 extends BaseRichBolt {
      */
     @Override
     public void execute(Tuple input) {
-        // 0 是下标
-        String string = input.getString(0);
-        //通过上游声明的字段取得对应的values下标
+        try {
+            // 0 是下标
+            String string = input.getString(0);
+            //通过上游声明的字段取得对应的values下标
 //        input.getStringByField("aaa");
 
-        String[] split = string.split(" ");
+            String[] split = string.split(" ");
 
-        for (String s : split) {
-            collector.emit(new Values(s,1));
+            for (String s : split) {
+                collector.emit(input,new Values(s,1));
+            }
+            collector.ack(input);
+        } catch (Exception e) {
+            collector.fail(input);
         }
+
     }
 
     @Override
