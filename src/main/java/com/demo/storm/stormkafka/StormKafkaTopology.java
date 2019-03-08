@@ -22,6 +22,10 @@ import java.util.List;
  * @author ZhengYingjie
  * @time 2019/3/8 9:26
  * @description
+ * 本实例详细说明storm和kafka的结合，
+ * 具体流程是：生产者着将数据写入到kafka的topic1中，
+ * storm应用做为消费者，从topic1中读取数据，并做一些复杂的处理变换
+ * ，然后将转换后的数据写入kafka的topic2中。
  */
 public class StormKafkaTopology {
 
